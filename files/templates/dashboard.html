@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Retail AI – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:     #070b14;
+  --surf:   #0f1422;
+  --card:   #141928;
+  --border: #1e2640;
+  --accent: #5b52f5;
+  --accent2:#7c75ff;
+  --teal:   #00cfa8;
+  --amber:  #f0a020;
+  --coral:  #f06060;
+  --green:  #3db870;
+  --text:   #dde2f0;
+  --muted:  #6a7294;
+  --font:   'Space Grotesk', system-ui, sans-serif;
+  --mono:   'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(91,82,245,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,82,245,.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;
+    background:rgba(7,11,20,.85);border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;
+           display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px;
+             font-size:14px;font-weight:500;transition:.15s}
+.nav-links a:hover,.nav-links a.active{background:rgba(91,82,245,.15);color:var(--accent2)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+             font-size:12px;font-weight:600;border:1px solid;transition:.3s}
+.status-pill.ok{background:rgba(61,184,112,.1);border-color:rgba(61,184,112,.25);color:var(--green)}
+.status-pill.err{background:rgba(240,96,96,.1);border-color:rgba(240,96,96,.25);color:var(--coral)}
+.status-dot{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite}
+.ok .status-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.err .status-dot{background:var(--coral);box-shadow:0 0 6px var(--coral);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-btn{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:9px;
+             cursor:pointer;font-size:13px;font-weight:600;transition:.2s;font-family:var(--font)}
+.refresh-btn:hover{opacity:.88}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.auto-refresh{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.auto-refresh input[type="checkbox"]{accent-color:var(--accent)}
+
+.container{max-width:1400px;margin:0 auto;padding:36px 48px;position:relative;z-index:1}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+.page-header h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.page-header p{color:var(--muted);font-size:13px;margin-top:4px}
+.header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+.alert{border-radius:12px;padding:13px 18px;margin-bottom:20px;
+       display:flex;align-items:center;gap:10px;font-size:13px}
+.alert-info{background:rgba(91,82,245,.08);border:1px solid rgba(91,82,245,.25)}
+.alert-info .alert-text{color:var(--accent2);line-height:1.5}
+
+.cam-status-bar{background:var(--card);border:1px solid var(--border);border-radius:14px;
+                padding:14px 20px;margin-bottom:20px;
+                display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.cam-status-left{display:flex;align-items:center;gap:12px}
+.cam-dot{width:11px;height:11px;border-radius:50%;transition:.3s}
+.cam-dot.online{background:var(--green);box-shadow:0 0 8px var(--green)}
+.cam-dot.offline{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.cam-status-text{font-size:14px;font-weight:600}
+.cam-status-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.cam-actions{display:flex;gap:10px}
+.cam-link{color:var(--accent2);text-decoration:none;font-size:13px;font-weight:600;
+          padding:6px 14px;border:1px solid rgba(91,82,245,.3);border-radius:8px;transition:.15s}
+.cam-link:hover{background:rgba(91,82,245,.15)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+           padding:22px 24px;transition:.2s;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:.6}
+.stat-card:nth-child(1)::after{background:var(--accent)}
+.stat-card:nth-child(2)::after{background:var(--teal)}
+.stat-card:nth-child(3)::after{background:var(--amber)}
+.stat-card:nth-child(4)::after{background:var(--coral)}
+.stat-card:hover{border-color:rgba(91,82,245,.35);transform:translateY(-2px)}
+.stat-icon{font-size:22px;margin-bottom:12px}
+.stat-value{font-size:34px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.stat-change{font-size:12px;margin-top:8px;color:var(--muted)}
+.pct-up{color:var(--green)}
+
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px}
+.chart-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.chart-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.chart-wrap{position:relative;width:100%}
+.empty-chart{text-align:center;padding:40px 16px;color:var(--muted);display:none}
+.empty-chart .icon{font-size:36px;margin-bottom:10px}
+.empty-chart p{font-size:13px}
+
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;
+              padding:18px 24px;border-bottom:1px solid var(--border)}
+.table-header h3{font-size:15px;font-weight:700}
+.count-badge{background:rgba(91,82,245,.15);color:var(--accent2);border-radius:20px;
+             padding:4px 12px;font-size:12px;font-weight:600}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:13px 24px;color:var(--muted);font-weight:600;font-size:11px;
+   text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 24px;border-bottom:1px solid rgba(30,38,64,.5);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(91,82,245,.04)}
+.gender-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.gender-male{background:rgba(91,82,245,.18);color:var(--accent2)}
+.gender-female{background:rgba(240,96,96,.18);color:var(--coral)}
+.age-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+           background:rgba(0,207,168,.12);color:var(--teal)}
+.suggestion-cell{max-width:260px;white-space:normal;line-height:1.5;color:var(--muted);font-size:12px}
+.time-cell{color:var(--muted);font-size:12px;font-family:var(--mono)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+code{background:var(--surf);padding:2px 8px;border-radius:4px;font-size:12px;color:var(--teal);font-family:var(--mono)}
+
+footer{margin-top:48px;border-top:1px solid var(--border);padding:24px 48px;
+       display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+       position:relative;z-index:1}
+.footer-left{font-size:13px;color:var(--muted)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:.15s}
+.footer-links a:hover{color:var(--accent2)}
+
+@media(max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}.chart-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .container{padding:24px 20px}.stat-grid{grid-template-columns:1fr}
+  .page-header{flex-direction:column;align-items:flex-start}
+  nav{padding:0 20px}.footer-links{flex-wrap:wrap}footer{padding:20px}
+  .cam-status-bar{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🛒</div>
+    Smart Retail AI
+  </div>
+  <div class="nav-links">
+    <a href="/">Trang chủ</a>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/upload">Upload Video</a>
+  </div>
+  <div class="nav-right">
+    <div class="status-pill ok" id="status-pill">
+      <div class="status-dot"></div>
+      <span id="status-text">Đang tải...</span>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>📊 Dashboard – Phân tích khách hàng</h1>
+      <p>Dữ liệu thời gian thực từ hệ thống AI nhận diện</p>
+    </div>
+    <div class="header-actions">
+      <div class="auto-refresh">
+        <input type="checkbox" id="auto-refresh-check" checked>
+        <label for="auto-refresh-check">Tự động (15s)</label>
+      </div>
+      <button class="refresh-btn" onclick="refreshAll()" id="refresh-btn">🔄 Làm mới</button>
+    </div>
+  </div>
+
+  <div class="cam-status-bar">
+    <div class="cam-status-left">
+      <div class="cam-dot offline" id="cam-status-dot"></div>
+      <div>
+        <div class="cam-status-text" id="cam-status-text">Kiểm tra camera...</div>
+        <div class="cam-status-sub" id="cam-status-sub">Đang xác nhận kết nối</div>
+      </div>
+    </div>
+    <div class="cam-actions">
+      <a href="/video_feed" target="_blank" class="cam-link">📷 Camera Feed</a>
+      <a href="/upload" class="cam-link">🎥 Upload Video</a>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <span style="font-size:18px">💡</span>
+    <div class="alert-text">
+      <strong>Dashboard hoạt động độc lập:</strong> Dữ liệu được đọc từ database, không phụ thuộc camera.
+      Nếu <code>main.py</code> đang chạy, camera stream hiển thị trên cửa sổ OpenCV.
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-value accent-c" id="stat-total" style="color:var(--accent2)">0</div>
+      <div class="stat-label">Tổng khách hàng</div>
+      <div class="stat-change">Tất cả thời gian</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value" id="stat-today" style="color:var(--teal)">0</div>
+      <div class="stat-label">Khách hôm nay</div>
+      <div class="stat-change" id="change-today">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👨</div>
+      <div class="stat-value" id="stat-male" style="color:var(--amber)">0</div>
+      <div class="stat-label">Nam giới</div>
+      <div class="stat-change" id="male-pct">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👩</div>
+      <div class="stat-value" id="stat-female" style="color:var(--coral)">0</div>
+      <div class="stat-label">Nữ giới</div>
+      <div class="stat-change" id="female-pct">–</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>🎯 Phân bố giới tính</h3>
+      <div class="chart-sub">Tỷ lệ Nam / Nữ</div>
+      <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
+      <div class="empty-chart" id="gender-empty"><div class="icon">📭</div><p>Chưa có dữ liệu</p></div>
+    </div>
+    <div class="chart-card">
+      <h3>👶 Phân bố nhóm tuổi</h3>
+      <div class="chart-sub">Số lượng khách theo độ tuổi</div>
+      <div class="chart-wrap"><canvas id="ageChart"></canvas></div>
+      <div class="empty-chart" id="age-empty"><div class="icon">📭</div><p>Chưa có dữ liệu</p></div>
+    </div>
+    <div class="chart-card">
+      <h3>⏰ Lượt khách theo giờ</h3>
+      <div class="chart-sub">Trong 24 giờ qua</div>
+      <div class="chart-wrap"><canvas id="hourlyChart"></canvas></div>
+      <div class="empty-chart" id="hourly-empty"><div class="icon">📭</div><p>Chưa có dữ liệu</p></div>
+    </div>
+    <div class="chart-card">
+      <h3>🍩 Tổng quan nhóm tuổi</h3>
+      <div class="chart-sub">Phân bố dạng doughnut</div>
+      <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+      <div class="empty-chart" id="doughnut-empty"><div class="icon">📭</div><p>Chưa có dữ liệu</p></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <h3>🛒 Khách hàng gần đây</h3>
+      <span class="count-badge" id="table-count">0 khách</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Thời gian</th><th>Giới tính</th>
+            <th>Nhóm tuổi</th><th>Gợi ý sản phẩm</th><th>Ưu đãi</th>
+          </tr>
+        </thead>
+        <tbody id="customer-table-body">
+          <tr><td colspan="6">
+            <div class="empty-state">
+              <div class="icon">📭</div>
+              <p>Chưa có khách hàng nào được nhận diện</p>
+              <p style="margin-top:8px">Chạy <code>python app.py</code> hoặc upload video để bắt đầu</p>
+            </div>
+           </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left" id="footer-time">© <span id="footer-year"></span> Smart Retail AI</div>
+  <div class="footer-links">
+    <a href="/">Trang chủ</a>
+    <a href="/api/stats" target="_blank">API Stats</a>
+    <a href="/api/customers" target="_blank">API Customers</a>
+    <a href="/video_feed" target="_blank">Camera Stream</a>
+  </div>
+</footer>
+
+<script>
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+let genderChart, ageChart, hourlyChart, doughnutChart;
+let autoRefreshInterval = null;
+const AUTO_REFRESH_MS = 15000;
+const C = {
+  accent:'#7c75ff', teal:'#00cfa8', amber:'#f0a020', coral:'#f06060', green:'#3db870',
+  purple:'#a78bfa', pink:'#f472b6', blue:'#38bdf8', orange:'#fb923c', yellow:'#fbbf24',
+};
+Chart.defaults.color = '#6a7294';
+Chart.defaults.borderColor = 'rgba(30,38,64,.5)';
+Chart.defaults.font.family = "'Space Grotesk', system-ui, sans-serif";
+
+async function fetchStats() {
+  try { const r = await fetch('/api/stats'); if (!r.ok) throw new Error(); return await r.json(); }
+  catch { return null; }
+}
+async function fetchToday() {
+  try { const r = await fetch('/api/customers/today'); if (!r.ok) throw new Error(); const d = await r.json(); return d.count || 0; }
+  catch { return 0; }
+}
+async function fetchCustomers() {
+  try { const r = await fetch('/api/customers'); if (!r.ok) throw new Error(); return await r.json(); }
+  catch { return []; }
+}
+
+function updateCameraStatus() {
+  fetch('/api/camera_status')
+    .then(r => r.json())
+    .then(data => {
+      const dot  = document.getElementById('cam-status-dot');
+      const text = document.getElementById('cam-status-text');
+      const sub  = document.getElementById('cam-status-sub');
+      if (data.available) {
+        dot.className = 'cam-dot online';
+        text.textContent = '🟢 Camera đang hoạt động';
+        sub.textContent = `FPS: ${data.fps} | Detected: ${data.detected} | Processed: ${data.processed}`;
+      } else {
+        dot.className = 'cam-dot offline';
+        text.textContent = '🟡 Camera không hoạt động';
+        sub.textContent = 'Dùng Upload Video để phân tích không cần camera';
+      }
+    })
+    .catch(() => {
+      document.getElementById('cam-status-text').textContent = '⚫ Không kết nối được server';
+      document.getElementById('cam-status-sub').textContent  = 'Kiểm tra Flask server đang chạy';
+    });
+}
+
+function updateStatCards(stats, todayCount) {
+  const total = stats?.total || 0, male = stats?.male || 0, female = stats?.female || 0;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-today').textContent   = todayCount;
+  document.getElementById('stat-male').textContent    = male;
+  document.getElementById('stat-female').textContent  = female;
+  if (total > 0) {
+    document.getElementById('male-pct').innerHTML   = `<span class="pct-up">${Math.round(male/total*100)}% tổng</span>`;
+    document.getElementById('female-pct').innerHTML = `<span class="pct-up">${Math.round(female/total*100)}% tổng</span>`;
+  }
+}
+
+function showHide(canvasId, emptyId, hasData) {
+  document.getElementById(canvasId).style.display  = hasData ? 'block' : 'none';
+  document.getElementById(emptyId).style.display   = hasData ? 'none'  : 'block';
+}
+
+function updateCharts(stats) {
+  if (!stats) return;
+  const total = stats.total || 0, male = stats.male || 0, female = stats.female || 0;
+
+  showHide('genderChart','gender-empty', total > 0);
+  if (genderChart) genderChart.destroy();
+  if (total > 0) {
+    genderChart = new Chart(document.getElementById('genderChart').getContext('2d'), {
+      type:'pie',
+      data:{ labels:['Nam','Nữ'], datasets:[{ data:[male,female], backgroundColor:[C.accent,C.coral],
+              borderColor:'#141928', borderWidth:3, hoverBorderColor:C.teal }] },
+      options:{ responsive:true, maintainAspectRatio:true,
+        plugins:{ legend:{ position:'bottom', labels:{ padding:20, usePointStyle:true, pointStyleWidth:10 } },
+          tooltip:{ callbacks:{ label:(ctx) => ` ${ctx.label}: ${ctx.parsed} (${total>0?Math.round(ctx.parsed/total*100):0}%)` } } } }
+    });
+  }
+
+  const ageCounts = stats.age_counts || {};
+  const ageLabels = Object.keys(ageCounts), ageValues = Object.values(ageCounts);
+  const ageColors = [C.teal, C.blue, C.accent, C.amber, C.coral];
+  const hasAge = ageValues.some(v => v > 0);
+  showHide('ageChart','age-empty', hasAge);
+  if (ageChart) ageChart.destroy();
+  if (hasAge) {
+    ageChart = new Chart(document.getElementById('ageChart').getContext('2d'), {
+      type:'bar',
+      data:{ labels:ageLabels, datasets:[{ label:'Số lượng', data:ageValues,
+              backgroundColor:ageColors, borderRadius:8, borderSkipped:false }] },
+      options:{ responsive:true, maintainAspectRatio:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 }, grid:{ color:'rgba(30,38,64,.4)' } },
+                 x:{ ticks:{ maxRotation:30 }, grid:{ display:false } } } }
+    });
+  }
+
+  const hourlyData = stats.hourly || [];
+  const hasHourly = hourlyData.length > 0;
+  showHide('hourlyChart','hourly-empty', hasHourly);
+  if (hourlyChart) hourlyChart.destroy();
+  if (hasHourly) {
+    hourlyChart = new Chart(document.getElementById('hourlyChart').getContext('2d'), {
+      type:'line',
+      data:{ labels:hourlyData.map(h=>h.hour+'h'), datasets:[{ label:'Khách',
+              data:hourlyData.map(h=>h.count), borderColor:C.accent,
+              backgroundColor:'rgba(91,82,245,.08)', fill:true, tension:.4,
+              pointRadius:4, pointBackgroundColor:C.accent, pointBorderColor:'#fff', pointBorderWidth:2 }] },
+      options:{ responsive:true, maintainAspectRatio:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 }, grid:{ color:'rgba(30,38,64,.4)' } },
+                 x:{ ticks:{}, grid:{ display:false } } } }
+    });
+  }
+
+  showHide('doughnutChart','doughnut-empty', hasAge);
+  if (doughnutChart) doughnutChart.destroy();
+  if (hasAge) {
+    doughnutChart = new Chart(document.getElementById('doughnutChart').getContext('2d'), {
+      type:'doughnut',
+      data:{ labels:ageLabels, datasets:[{ data:ageValues, backgroundColor:ageColors,
+              borderColor:'#141928', borderWidth:3, hoverBorderColor:C.teal }] },
+      options:{ responsive:true, maintainAspectRatio:true,
+        plugins:{ legend:{ position:'bottom', labels:{ padding:16, usePointStyle:true, pointStyleWidth:10 } } } }
+    });
+  }
+}
+
+function updateCustomerTable(customers) {
+  const tbody = document.getElementById('customer-table-body');
+  document.getElementById('table-count').textContent = `${customers.length} khách`;
+  if (!customers || customers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+      <div class="icon">📭</div>
+      <p>Chưa có khách hàng nào được nhận diện</p>
+      <p style="margin-top:8px">Chạy <code>python app.py</code> hoặc upload video để bắt đầu</p>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = customers.map(c => {
+    let productHtml = c.suggestions || '--';
+    return `
+      <tr>
+        <td><strong style="color:var(--accent2)">#${c.track_id||c.id}</strong></td>
+        <td class="time-cell">${c.timestamp||'--'}</td>
+        <td><span class="gender-badge ${c.gender==='Nam'?'gender-male':'gender-female'}">${c.gender||'--'}</span></td>
+        <td><span class="age-badge">${c.age_group||'--'}</span></td>
+        <td class="suggestion-cell" style="font-size:12px;max-width:280px">${productHtml}</td>
+        <td style="font-size:12px;color:var(--amber)">${c.promotion||'--'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateStatus(connected) {
+  const pill = document.getElementById('status-pill');
+  const text = document.getElementById('status-text');
+  if (connected) {
+    pill.className = 'status-pill ok';
+    text.textContent = 'Hệ thống hoạt động';
+  } else {
+    pill.className = 'status-pill err';
+    text.textContent = 'Mất kết nối';
+  }
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.textContent = '⏳ Đang tải...';
+  btn.disabled = true;
+  try {
+    const [stats, todayCount, customers] = await Promise.all([fetchStats(), fetchToday(), fetchCustomers()]);
+    if (stats) {
+      updateStatCards(stats, todayCount);
+      updateCharts(stats);
+      updateCustomerTable(customers);
+      updateStatus(true);
+      document.getElementById('footer-time').innerHTML =
+        `© ${new Date().getFullYear()} Smart Retail AI – Cập nhật: ${new Date().toLocaleTimeString('vi-VN')}`;
+    } else { updateStatus(false); }
+    updateCameraStatus();
+  } catch(e) { updateStatus(false); }
+  btn.textContent = '🔄 Làm mới';
+  btn.disabled = false;
+}
+
+function manageAutoRefresh() {
+  const checked = document.getElementById('auto-refresh-check').checked;
+  if (checked) {
+    if (!autoRefreshInterval) autoRefreshInterval = setInterval(refreshAll, AUTO_REFRESH_MS);
+  } else {
+    if (autoRefreshInterval) { clearInterval(autoRefreshInterval); autoRefreshInterval = null; }
+  }
+}
+
+document.getElementById('auto-refresh-check').addEventListener('change', manageAutoRefresh);
+window.addEventListener('beforeunload', () => { if (autoRefreshInterval) clearInterval(autoRefreshInterval); });
+
+refreshAll();
+manageAutoRefresh();
+</script>
+</body>
+</html>

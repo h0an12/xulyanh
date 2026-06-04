@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Retail AI – Realtime Recommendation</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070b14;
+  --surf: #0f1422;
+  --card: #141928;
+  --border: #1e2640;
+  --accent: #5b52f5;
+  --accent2: #7c75ff;
+  --teal: #00cfa8;
+  --amber: #f0a020;
+  --coral: #f06060;
+  --green: #3db870;
+  --text: #dde2f0;
+  --muted: #6a7294;
+  --font: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(91,82,245,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,82,245,.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;
+    background:rgba(7,11,20,.85);border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;
+           display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px;
+             font-size:14px;font-weight:500;transition:.15s}
+.nav-links a:hover,.nav-links a.active{background:rgba(91,82,245,.15);color:var(--accent2)}
+.status-pill{display:flex;align-items:center;gap:6px;background:rgba(61,184,112,.1);
+             border:1px solid rgba(61,184,112,.25);border-radius:20px;
+             padding:5px 12px;font-size:12px;font-weight:600;color:var(--green)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+            box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
+      padding:80px 48px 64px;max-width:1280px;margin:0 auto;position:relative;z-index:1}
+.hero h1{font-size:52px;font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-1px}
+.hero h1 .hi{color:var(--accent2)}
+.hero p{font-size:16px;color:var(--muted);line-height:1.75;margin-bottom:36px;max-width:480px}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap}
+.btn{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;
+     text-decoration:none;transition:.2s;cursor:pointer;border:none;
+     display:inline-flex;align-items:center;gap:8px;font-family:var(--font)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 24px rgba(91,82,245,.35)}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2)}
+
+.cam-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.cam-header{display:flex;align-items:center;justify-content:space-between;
+            padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surf)}
+.cam-title{font-size:13px;font-weight:600}
+.cam-badges{display:flex;gap:6px}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-live{background:rgba(61,184,112,.18);color:var(--green)}
+.badge-ai{background:rgba(91,82,245,.18);color:var(--accent2)}
+.cam-body{position:relative;background:#000;aspect-ratio:4/3}
+.cam-body img{width:100%;height:100%;object-fit:cover}
+.cam-footer{display:grid;grid-template-columns:repeat(4,1fr);
+            padding:16px 18px;gap:8px;background:var(--surf);border-top:1px solid var(--border)}
+.cam-stat{text-align:center}
+.cam-stat-val{font-size:22px;font-weight:800;color:var(--accent2)}
+.cam-stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ========== REALTIME RECOMMENDATION SECTION ========== */
+.realtime-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 48px;
+    position: relative;
+    z-index: 1;
+}
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+}
+.section-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -.5px;
+}
+.section-sub {
+    color: var(--muted);
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+/* Realtime Customer Card */
+.realtime-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 30px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+.realtime-cards::-webkit-scrollbar {
+    width: 6px;
+}
+.realtime-cards::-webkit-scrollbar-track {
+    background: var(--surf);
+    border-radius: 10px;
+}
+.realtime-cards::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+.customer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    animation: slideInRight 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+.customer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent);
+}
+.customer-card.new {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(91, 82, 245, 0.2);
+}
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+@keyframes pulse-border {
+    0%, 100% { border-color: var(--accent); box-shadow: 0 0 0 0 rgba(91, 82, 245, 0.4); }
+    50% { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(91, 82, 245, 0.2); }
+}
+.customer-card.new {
+    animation: pulse-border 1s ease;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.customer-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.badge-id {
+    background: rgba(91, 82, 245, 0.2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent2);
+}
+.badge-new {
+    background: var(--green);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.card-time {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+}
+.customer-info {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.info-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--surf);
+    border-radius: 30px;
+}
+.info-tag .label {
+    font-size: 12px;
+    color: var(--muted);
+}
+.info-tag .value {
+    font-size: 14px;
+    font-weight: 600;
+}
+.gender-male .value { color: var(--accent2); }
+.gender-female .value { color: var(--coral); }
+.age-tag .value { color: var(--teal); }
+
+/* Products Section */
+.products-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.product-card {
+    background: var(--surf);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.2s;
+}
+.product-card:hover {
+    border-color: var(--teal);
+    transform: translateY(-2px);
+}
+.product-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+.product-shelf {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--teal);
+    font-family: var(--mono);
+    background: rgba(0, 207, 168, 0.1);
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+.promotion-card {
+    background: linear-gradient(135deg, rgba(240, 160, 32, 0.1), rgba(240, 160, 32, 0.05));
+    border: 1px solid rgba(240, 160, 32, 0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.promotion-card .emoji {
+    font-size: 24px;
+}
+.promotion-card .text {
+    font-size: 13px;
+    color: var(--amber);
+    font-weight: 500;
+}
+
+.empty-realtime {
+    text-align: center;
+    padding: 60px 24px;
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+.empty-realtime .icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+.empty-realtime p {
+    color: var(--muted);
+    font-size: 14px;
+}
+.empty-realtime .sub {
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+/* Stats Bar */
+.stats-bar{background:var(--surf);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+           padding:18px 48px;display:flex;gap:40px;align-items:center;flex-wrap:wrap;position:relative;z-index:1}
+.stat-item div .val{font-size:26px;font-weight:800}
+.stat-item div .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.last-update{margin-left:auto;font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+/* Features Section */
+.section{padding:64px 48px;max-width:1280px;margin:0 auto;position:relative;z-index:1}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.2s}
+.feat-card:hover{border-color:rgba(91,82,245,.4);transform:translateY(-2px)}
+.feat-icon{width:48px;height:48px;border-radius:12px;background:rgba(91,82,245,.12);
+           display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.feat-title{font-size:15px;font-weight:700;margin-bottom:8px}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.65}
+
+footer{margin-top:80px;border-top:1px solid var(--border);padding:28px 48px;
+       display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.footer-left{font-size:13px;color:var(--muted)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:.15s}
+.footer-links a:hover{color:var(--accent2)}
+
+@media(max-width:960px){
+  .hero{grid-template-columns:1fr;padding:48px 24px;gap:40px}
+  .realtime-section{padding:40px 24px}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .section{padding:48px 24px}
+  .stats-bar{padding:16px 24px;gap:24px}
+  nav{padding:0 24px}
+  footer{padding:20px 24px;flex-direction:column;gap:16px;text-align:center}
+}
+@media(max-width:560px){
+  .feat-grid{grid-template-columns:1fr}
+  .hero h1{font-size:36px}
+  .products-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🛒</div>
+    Smart Retail AI
+  </div>
+  <div class="nav-links">
+    <a href="/" class="active">Trang chủ</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload Video</a>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Đang tải...</span>
+  </div>
+</nav>
+
+<section style="position:relative;z-index:1">
+  <div class="hero">
+    <div>
+      <h1>Smart Retail <span class="hi">AI</span></h1>
+      <p>Hệ thống phân tích khách hàng thông minh: nhận diện giới tính, nhóm tuổi và <strong>đề xuất sản phẩm kèm vị trí kệ</strong> theo thời gian thực.</p>
+      <div class="btn-row">
+        <a href="/upload" class="btn btn-primary">🎥 Upload Video phân tích</a>
+        <a href="/dashboard" class="btn btn-ghost">📊 Xem Dashboard</a>
+      </div>
+    </div>
+    <div class="cam-card">
+      <div class="cam-header">
+        <div class="cam-title">📷 Camera Feed</div>
+        <div class="cam-badges">
+          <span class="badge badge-live">● LIVE</span>
+          <span class="badge badge-ai">AI ON</span>
+        </div>
+      </div>
+      <div class="cam-body">
+        <img id="cam-img" src="/video_feed" alt="" style="width:100%;height:100%;object-fit:cover">
+      </div>
+      <div class="cam-footer">
+        <div class="cam-stat"><div class="cam-stat-val" id="c-today">0</div><div class="cam-stat-lbl">Hôm nay</div></div>
+        <div class="cam-stat"><div class="cam-stat-val" id="c-total">0</div><div class="cam-stat-lbl">Tổng</div></div>
+        <div class="cam-stat"><div class="cam-stat-val" style="color:var(--accent2)" id="c-male">0</div><div class="cam-stat-lbl">Nam</div></div>
+        <div class="cam-stat"><div class="cam-stat-val" style="color:var(--coral)" id="c-female">0</div><div class="cam-stat-lbl">Nữ</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="stat-item"><div><div class="val" style="color:var(--accent2)" id="sb-total">0</div><div class="lbl">Tổng khách</div></div></div>
+  <div class="stat-item"><div><div class="val" style="color:var(--accent2)" id="sb-male">0</div><div class="lbl">Nam</div></div></div>
+  <div class="stat-item"><div><div class="val" style="color:var(--coral)" id="sb-female">0</div><div class="lbl">Nữ</div></div></div>
+  <div class="stat-item"><div><div class="val" style="color:var(--teal)" id="sb-today">0</div><div class="lbl">Hôm nay</div></div></div>
+  <div class="last-update" id="last-update">--</div>
+</div>
+
+<!-- ========== REALTIME RECOMMENDATION SECTION ========== -->
+<div class="realtime-section">
+  <div class="section-label">🔴 REALTIME</div>
+  <div class="section-title">Khách hàng vừa phát hiện</div>
+  <div class="section-sub">Gợi ý sản phẩm kèm <strong>vị trí kệ</strong> dựa trên giới tính và độ tuổi</div>
+  
+  <div id="realtime-cards-container">
+    <div class="empty-realtime">
+      <div class="icon">👀</div>
+      <p>Đang chờ camera phát hiện khách hàng...</p>
+      <p class="sub">Khi có khách hàng mới, gợi ý sản phẩm và vị trí kệ sẽ hiển thị tại đây</p>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="section-label">Tính năng</div>
+  <div class="section-title">Công nghệ AI tích hợp</div>
+  <div class="section-sub">Toàn bộ quy trình phân tích khách hàng được tự động hóa</div>
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">🎯</div><div class="feat-title">Nhận diện người (YOLO)</div><div class="feat-desc">Phát hiện và theo dõi người trong video bằng YOLOv8.</div></div>
+    <div class="feat-card"><div class="feat-icon">🧠</div><div class="feat-title">Phân tích giới tính & tuổi</div><div class="feat-desc">DeepFace phân tích khuôn mặt, phân loại giới tính và nhóm tuổi.</div></div>
+    <div class="feat-card"><div class="feat-icon">🛍️</div><div class="feat-title">Gợi ý sản phẩm + Vị trí kệ</div><div class="feat-desc">Hiển thị ngay sản phẩm phù hợp và vị trí kệ trong siêu thị.</div></div>
+    <div class="feat-card"><div class="feat-icon">📡</div><div class="feat-title">Thông báo Telegram</div><div class="feat-desc">Gửi thông báo realtime khi phát hiện khách mới, kèm ảnh chụp.</div></div>
+    <div class="feat-card"><div class="feat-icon">🗄️</div><div class="feat-title">Lưu trữ dữ liệu</div><div class="feat-desc">Khách hàng và lịch sử giao dịch lưu vào SQLite.</div></div>
+    <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-title">Web Dashboard</div><div class="feat-desc">Biểu đồ giới tính, nhóm tuổi, lượt khách theo giờ.</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-left">© <span id="footer-year"></span> Smart Retail AI</div>
+  <div class="footer-links">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload Video</a>
+    <a href="/api/stats" target="_blank">API Stats</a>
+  </div>
+</footer>
+
+<script>
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+// State
+let lastCustomerIds = new Set();
+let notificationSound = null;
+
+// Khởi tạo âm thanh thông báo (tùy chọn)
+function initNotificationSound() {
+    try {
+        notificationSound = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZCBub3QgYXZhaWxhYmxl');
+        notificationSound.volume = 0.5;
+    } catch(e) {}
+}
+
+// Format thời gian
+function formatTime(timestamp) {
+    if (!timestamp) return '--';
+    try {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch(e) {
+        return timestamp;
+    }
+}
+
+// Tạo card HTML cho khách hàng
+function createCustomerCard(customer, isNew = false) {
+    const products = customer.products || [];
+    const timeStr = formatTime(customer.timestamp);
+    const genderClass = customer.gender === 'Nam' ? 'gender-male' : 'gender-female';
+    const genderIcon = customer.gender === 'Nam' ? '👨' : '👩';
+    
+    let productsHtml = '';
+    if (products.length > 0) {
+        productsHtml = products.map(p => `
+            <div class="product-card">
+                <span class="product-name">🎁 ${p.name}</span>
+                <span class="product-shelf">📍 ${p.shelf}</span>
+            </div>
+        `).join('');
+    } else {
+        // Fallback nếu không có products_json
+        const suggestions = customer.suggestions ? customer.suggestions.split(', ') : [];
+        productsHtml = suggestions.map(s => `
+            <div class="product-card">
+                <span class="product-name">🎁 ${s}</span>
+                <span class="product-shelf">📍 Đang cập nhật...</span>
+            </div>
+        `).join('');
+    }
+    
+    return `
+        <div class="customer-card ${isNew ? 'new' : ''}" data-customer-id="${customer.id}">
+            <div class="card-header">
+                <div class="customer-badge">
+                    <span class="badge-id">#${customer.track_id || customer.id}</span>
+                    ${isNew ? '<span class="badge-new">🆕 MỚI</span>' : ''}
+                </div>
+                <div class="card-time">🕐 ${timeStr}</div>
+            </div>
+            
+            <div class="customer-info">
+                <div class="info-tag ${genderClass}">
+                    <span class="label">🚻 Giới tính</span>
+                    <span class="value">${genderIcon} ${customer.gender || '?'}</span>
+                </div>
+                <div class="info-tag age-tag">
+                    <span class="label">🎂 Độ tuổi</span>
+                    <span class="value">${customer.age_group || '?'}</span>
+                </div>
+            </div>
+            
+            <div class="products-title">
+                🎯 <span>GỢI Ý SẢN PHẨM & VỊ TRÍ KỆ</span>
+            </div>
+            <div class="products-grid">
+                ${productsHtml}
+            </div>
+            
+            <div class="promotion-card">
+                <span class="emoji">💝</span>
+                <span class="text">${customer.promotion || 'Chào mừng đến siêu thị! Hãy khám phá các sản phẩm phía trên.'}</span>
+            </div>
+        </div>
+    `;
+}
+
+// Fetch danh sách khách hàng mới nhất
+async function fetchCustomers() {
+    try {
+        const response = await fetch('/api/customers?limit=20');
+        if (!response.ok) throw new Error('Network error');
+        const customers = await response.json();
+        return customers;
+    } catch (error) {
+        console.error('Fetch customers error:', error);
+        return [];
+    }
+}
+
+// Fetch thống kê
+async function fetchStats() {
+    try {
+        const [statsRes, todayRes] = await Promise.all([
+            fetch('/api/stats'),
+            fetch('/api/customers/today')
+        ]);
+        if (!statsRes.ok) throw new Error();
+        const stats = await statsRes.json();
+        const today = await todayRes.json();
+        
+        const total = stats.total || 0;
+        const male = stats.male || 0;
+        const female = stats.female || 0;
+        const todayCount = today.count || 0;
+        
+        const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+        set('c-today', todayCount);
+        set('c-total', total);
+        set('c-male', male);
+        set('c-female', female);
+        set('sb-total', total);
+        set('sb-male', male);
+        set('sb-female', female);
+        set('sb-today', todayCount);
+        set('last-update', 'Cập nhật ' + new Date().toLocaleTimeString('vi-VN'));
+        
+        const statusEl = document.getElementById('status-text');
+        if (statusEl) statusEl.textContent = total > 0 ? 'Hệ thống hoạt động' : 'Chưa có dữ liệu';
+        
+    } catch(e) {
+        console.error('Fetch stats error:', e);
+        document.getElementById('status-text').textContent = 'Mất kết nối API';
+    }
+}
+
+// Cập nhật giao diện realtime
+let isUpdating = false;
+
+async function updateRealtimeDisplay() {
+    if (isUpdating) return;
+    isUpdating = true;
+    
+    try {
+        const customers = await fetchCustomers();
+        const container = document.getElementById('realtime-cards-container');
+        
+        if (!customers || customers.length === 0) {
+            container.innerHTML = `
+                <div class="empty-realtime">
+                    <div class="icon">👀</div>
+                    <p>Đang chờ camera phát hiện khách hàng...</p>
+                    <p class="sub">Khi có khách hàng mới, gợi ý sản phẩm và vị trí kệ sẽ hiển thị tại đây</p>
+                </div>
+            `;
+            lastCustomerIds.clear();
+            isUpdating = false;
+            return;
+        }
+        
+        // Kiểm tra khách hàng mới
+        const currentIds = new Set(customers.map(c => c.id));
+        let newCustomers = [];
+        
+        for (const c of customers) {
+            if (!lastCustomerIds.has(c.id)) {
+                newCustomers.push(c);
+            }
+        }
+        
+        // Cập nhật lastCustomerIds
+        lastCustomerIds = currentIds;
+        
+        // Tạo HTML cho tất cả khách hàng (hiển thị 10 gần nhất)
+        const recentCustomers = customers.slice(0, 10);
+        const cardsHtml = recentCustomers.map(c => {
+            const isNew = newCustomers.some(nc => nc.id === c.id);
+            return createCustomerCard(c, isNew);
+        }).join('');
+        
+        container.innerHTML = `<div class="realtime-cards">${cardsHtml}</div>`;
+        
+        // Cuộn xuống card mới nhất
+        if (newCustomers.length > 0) {
+            const cards = document.querySelectorAll('.customer-card');
+            if (cards.length > 0) {
+                cards[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // Phát âm thanh thông báo nếu muốn
+            try {
+                if (notificationSound) {
+                    notificationSound.play().catch(e => console.log('Audio play failed'));
+                }
+            } catch(e) {}
+        }
+        
+    } catch (error) {
+        console.error('Update display error:', error);
+    }
+    
+    isUpdating = false;
+}
+
+// Khởi tạo và polling
+async function init() {
+    initNotificationSound();
+    await fetchStats();
+    await updateRealtimeDisplay();
+    
+    // Polling mỗi 2 giây để cập nhật khách hàng mới
+    setInterval(async () => {
+        await fetchStats();
+    }, 10000);
+    
+    setInterval(async () => {
+        await updateRealtimeDisplay();
+    }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>

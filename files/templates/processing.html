@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đang xử lý – Smart Retail AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #070b14;
+  --surf:   #0f1422;
+  --card:   #141928;
+  --border: #1e2640;
+  --accent: #5b52f5;
+  --accent2:#7c75ff;
+  --teal:   #00cfa8;
+  --amber:  #f0a020;
+  --coral:  #f06060;
+  --green:  #3db870;
+  --text:   #dde2f0;
+  --muted:  #6a7294;
+  --font:   'Space Grotesk', system-ui, sans-serif;
+  --mono:   'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;
+     display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(91,82,245,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,82,245,.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;
+    background:rgba(7,11,20,.85);border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);width:100%}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;
+           display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px;
+             font-size:14px;font-weight:500;transition:.15s}
+.nav-links a:hover{background:rgba(91,82,245,.15);color:var(--accent2)}
+
+.main{width:100%;max-width:1200px;padding:56px 24px;position:relative;z-index:1}
+
+.video-container{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:24px;
+}
+.video-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 20px;
+  background:var(--surf);
+  border-bottom:1px solid var(--border);
+}
+.video-header h3{
+  font-size:14px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.live-badge{
+  background:rgba(61,184,112,.15);
+  color:var(--green);
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+}
+.video-wrapper{
+  position:relative;
+  background:#000;
+  aspect-ratio:16/9;
+}
+.video-wrapper img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.video-overlay{
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  background:rgba(0,0,0,0.7);
+  padding:5px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-family:var(--mono);
+  color:var(--teal);
+}
+.video-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  background:rgba(0,0,0,0.8);
+  color:var(--muted);
+}
+.video-placeholder .icon{
+  font-size:48px;
+  margin-bottom:12px;
+}
+
+.progress-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px}
+.progress-bar{background:var(--surf);border-radius:10px;height:12px;overflow:hidden;margin:20px 0 10px}
+.progress-fill{background:linear-gradient(90deg,var(--accent),var(--teal));width:0%;height:100%;
+               border-radius:10px;transition:width .4s ease}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.progress-label span{font-size:13px;color:var(--muted)}
+.progress-label strong{font-size:14px;font-weight:700;font-family:var(--mono)}
+.status-text{font-size:13px;color:var(--muted);text-align:center;min-height:20px}
+
+.live-stats{display:none;margin-top:24px}
+.live-stats.show{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.live-stat{background:var(--surf);border-radius:12px;padding:14px;text-align:center}
+.live-stat-val{font-size:26px;font-weight:800;color:var(--accent2);font-variant-numeric:tabular-nums}
+.live-stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+.result-card{display:none;background:var(--card);border:1px solid var(--border);
+             border-radius:20px;padding:36px;margin-top:24px}
+.result-card.show{display:block}
+.result-header{text-align:center;margin-bottom:28px}
+.result-header .check{font-size:56px;margin-bottom:12px}
+.result-header h2{font-size:24px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
+.result-header p{color:var(--muted);font-size:14px}
+
+.result-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+.rsm-card{background:var(--surf);border-radius:12px;padding:16px;text-align:center}
+.rsm-val{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.rsm-lbl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+.age-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.age-badge{padding:5px 14px;border-radius:20px;background:rgba(0,207,168,.12);color:var(--teal);font-size:12px;font-weight:600}
+
+.detection-list{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.detection-item{background:var(--surf);border-radius:10px;padding:12px 16px;
+                display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.det-id{font-weight:700;color:var(--accent2);font-family:var(--mono);font-size:13px}
+.gender-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.gender-male{background:rgba(91,82,245,.18);color:var(--accent2)}
+.gender-female{background:rgba(240,96,96,.18);color:var(--coral)}
+.det-products{font-size:11px;color:var(--muted);max-width:380px}
+.det-products strong{color:var(--teal)}
+.product-shelf{font-size:10px;color:var(--amber);margin-left:6px}
+.promotion-text{font-size:10px;color:var(--amber);margin-top:4px;display:block}
+
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.btn{padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;
+     text-decoration:none;display:inline-flex;align-items:center;gap:7px;
+     cursor:pointer;border:none;transition:.2s;font-family:var(--font)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 20px rgba(91,82,245,.3)}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2)}
+
+.error-state{text-align:center;padding:32px;color:var(--coral)}
+.error-state .icon{font-size:48px;margin-bottom:12px}
+
+@media(max-width:640px){
+  nav{padding:0 20px}
+  .main{padding:32px 16px}
+  .live-stats.show,.result-summary{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🛒</div>
+    Smart Retail AI
+  </div>
+  <div class="nav-links">
+    <a href="/">Trang chủ</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload">Upload Video</a>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- Video Stream -->
+  <div class="video-container">
+    <div class="video-header">
+      <h3>🎬 <span id="video-name">Đang xử lý video...</span></h3>
+      <span class="live-badge" id="live-badge">● LIVE</span>
+    </div>
+    <div class="video-wrapper">
+      <img id="video-stream" src="" alt="Video stream" style="width:100%;height:100%;object-fit:contain;display:none">
+      <div class="video-placeholder" id="video-placeholder">
+        <div class="icon">🎥</div>
+        <p>Đang khởi tạo stream...</p>
+        <p style="font-size:12px;margin-top:8px">Video sẽ hiển thị khi bắt đầu xử lý</p>
+      </div>
+      <div class="video-overlay" id="video-overlay" style="display:none">
+        <span>🔍 AI đang phân tích</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Card -->
+  <div class="progress-card">
+    <div class="progress-label">
+      <span id="status-text">Đang khởi tạo...</span>
+      <strong id="pct-text">0%</strong>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="status-text" id="frame-text">–</div>
+
+    <!-- Live Stats -->
+    <div class="live-stats" id="live-stats">
+      <div class="live-stat">
+        <div class="live-stat-val" id="stat-detected" style="color:var(--accent2)">0</div>
+        <div class="live-stat-lbl">Đã phát hiện</div>
+      </div>
+      <div class="live-stat">
+        <div class="live-stat-val" id="stat-male" style="color:var(--accent2)">0</div>
+        <div class="live-stat-lbl">Nam</div>
+      </div>
+      <div class="live-stat">
+        <div class="live-stat-val" id="stat-female" style="color:var(--coral)">0</div>
+        <div class="live-stat-lbl">Nữ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Card -->
+  <div class="result-card" id="result-card">
+    <div class="result-header">
+      <div class="check">✅</div>
+      <h2>Phân tích hoàn tất!</h2>
+      <p>Dữ liệu đã được lưu vào database</p>
+    </div>
+
+    <div class="result-summary">
+      <div class="rsm-card">
+        <div class="rsm-val" style="color:var(--accent2)" id="r-total">0</div>
+        <div class="rsm-lbl">Tổng khách</div>
+      </div>
+      <div class="rsm-card">
+        <div class="rsm-val" style="color:var(--accent2)" id="r-male">0</div>
+        <div class="rsm-lbl">Nam</div>
+      </div>
+      <div class="rsm-card">
+        <div class="rsm-val" style="color:var(--coral)" id="r-female">0</div>
+        <div class="rsm-lbl">Nữ</div>
+      </div>
+    </div>
+
+    <div id="age-section" style="display:none;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)">📊 Nhóm tuổi</div>
+      <div class="age-badges" id="age-badges"></div>
+    </div>
+
+    <div id="detection-section" style="display:none;margin-bottom:24px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--muted)">🕒 Chi tiết phát hiện & Gợi ý sản phẩm</div>
+      <div class="detection-list" id="detection-list"></div>
+    </div>
+
+    <div class="btn-row">
+      <a href="/dashboard" class="btn btn-primary">📊 Xem Dashboard</a>
+      <a href="/upload" class="btn btn-ghost">🎥 Upload video khác</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// video_id được inject bởi Flask render_template
+const videoId = (function() {
+  const tmpl = "{{ video_id }}";
+  if (tmpl && !tmpl.startsWith('{')) return tmpl;
+  return new URLSearchParams(window.location.search).get('id') || '';
+})();
+
+let pollingInterval = null;
+let pollDelay = 2000;
+let lastProgress = 0;
+let errorCount = 0;
+const MAX_ERRORS = 8;
+
+// Khởi tạo video stream
+function initVideoStream() {
+  const videoImg = document.getElementById('video-stream');
+  const placeholder = document.getElementById('video-placeholder');
+  const overlay = document.getElementById('video-overlay');
+  const liveBadge = document.getElementById('live-badge');
+  const videoName = document.getElementById('video-name');
+  
+  if (videoId) {
+    videoImg.src = `/video_stream/${videoId}`;
+    videoName.textContent = `Video đang xử lý...`;
+    
+    videoImg.onload = () => {
+      videoImg.style.display = 'block';
+      placeholder.style.display = 'none';
+      overlay.style.display = 'block';
+      liveBadge.textContent = '● LIVE';
+      liveBadge.style.background = 'rgba(61,184,112,.15)';
+      liveBadge.style.color = 'var(--green)';
+    };
+    
+    videoImg.onerror = () => {
+      setTimeout(() => {
+        videoImg.src = `/video_stream/${videoId}`;
+      }, 2000);
+    };
+  }
+}
+
+function setProgress(pct, statusMsg, frameMsg) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('pct-text').textContent = pct + '%';
+  if (statusMsg) document.getElementById('status-text').textContent = statusMsg;
+  if (frameMsg !== undefined) document.getElementById('frame-text').textContent = frameMsg;
+}
+
+async function checkStatus() {
+  if (!videoId) {
+    document.getElementById('status-text').textContent = '❌ Không tìm thấy video ID';
+    clearInterval(pollingInterval);
+    return;
+  }
+  try {
+    const res = await fetch(`/api/upload/status/${videoId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    errorCount = 0;
+
+    const pct = data.progress || 0;
+    if (pct > lastProgress) lastProgress = pct;
+
+    if (data.status === 'pending') {
+      setProgress(pct, '⏳ Đang chuẩn bị xử lý...', '–');
+    }
+    else if (data.status === 'processing') {
+      const frameMsg = data.total_frames
+        ? `Frame ${data.current_frame || 0} / ${data.total_frames}`
+        : `Frame ${data.current_frame || 0}`;
+      setProgress(pct, '🔄 Đang xử lý...', frameMsg);
+      document.getElementById('live-stats').classList.add('show');
+      
+      const overlay = document.getElementById('video-overlay');
+      if (overlay) overlay.style.display = 'block';
+      
+      await fetchRealtimeStats();
+    }
+    else if (data.status === 'completed') {
+      setProgress(100, '✅ Hoàn tất! Đang tải kết quả...', '');
+      clearInterval(pollingInterval);
+      
+      const liveBadge = document.getElementById('live-badge');
+      if (liveBadge) {
+        liveBadge.textContent = '✅ COMPLETED';
+        liveBadge.style.background = 'rgba(61,184,112,.15)';
+      }
+      
+      setTimeout(() => {
+        const videoImg = document.getElementById('video-stream');
+        const placeholder = document.getElementById('video-placeholder');
+        if (videoImg) videoImg.style.display = 'none';
+        if (placeholder) {
+          placeholder.style.display = 'flex';
+          placeholder.innerHTML = `
+            <div class="icon">✅</div>
+            <p>Phân tích hoàn tất!</p>
+            <p style="font-size:12px;margin-top:8px">${data.total_frames || 0} frame đã xử lý</p>
+          `;
+        }
+      }, 500);
+      
+      await loadResult();
+    }
+    else if (data.status === 'error') {
+      setProgress(pct, `❌ Lỗi: ${data.error || 'Không xác định'}`, '');
+      clearInterval(pollingInterval);
+    }
+  } catch(e) {
+    errorCount++;
+    console.error('Poll error:', e);
+    pollDelay = Math.min(pollDelay * 1.5, 15000);
+    if (errorCount >= MAX_ERRORS) {
+      clearInterval(pollingInterval);
+      document.getElementById('status-text').textContent = '⚠️ Mất kết nối server. Thử tải lại trang.';
+    }
+  }
+}
+
+async function fetchRealtimeStats() {
+  try {
+    const res = await fetch(`/api/upload/realtime/${videoId}`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    
+    if (data.detections && data.detections.length > 0) {
+      const male = data.stats?.male || 0;
+      const female = data.stats?.female || 0;
+      document.getElementById('stat-detected').textContent = data.detections.length;
+      document.getElementById('stat-male').textContent = male;
+      document.getElementById('stat-female').textContent = female;
+    }
+  } catch(e) {
+    console.error('Fetch realtime error:', e);
+  }
+}
+
+function formatProductText(products) {
+  if (!products || products.length === 0) return '—';
+  return products.map(p => {
+    if (typeof p === 'string') return p;
+    const name = p.name || '';
+    const shelf = p.shelf || '';
+    return shelf ? `${name} (${shelf})` : name;
+  }).join(', ');
+}
+
+async function loadResult() {
+  try {
+    const res = await fetch(`/api/upload/result/${videoId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = await res.json();
+
+    const total = result.total_customers || 0;
+    const male = result.stats?.male || 0;
+    const female = result.stats?.female || 0;
+
+    document.getElementById('stat-detected').textContent = total;
+    document.getElementById('stat-male').textContent = male;
+    document.getElementById('stat-female').textContent = female;
+
+    document.getElementById('r-total').textContent = total;
+    document.getElementById('r-male').textContent = male;
+    document.getElementById('r-female').textContent = female;
+
+    const ageGroups = result.stats?.age_groups || {};
+    const ageEntries = Object.entries(ageGroups).filter(([,v]) => v > 0);
+    if (ageEntries.length > 0) {
+      const ageSection = document.getElementById('age-section');
+      const ageBadges  = document.getElementById('age-badges');
+      ageSection.style.display = 'block';
+      ageBadges.innerHTML = ageEntries.map(([k,v]) =>
+        `<span class="age-badge">${k}: ${v}</span>`).join('');
+    }
+
+    if (result.detections && result.detections.length > 0) {
+      const section = document.getElementById('detection-section');
+      const list    = document.getElementById('detection-list');
+      section.style.display = 'block';
+
+      const items = result.detections.slice(0, 30);
+      list.innerHTML = items.map(d => {
+        let productsHtml = '—';
+        if (d.products && d.products.length > 0) {
+          const productItems = d.products.map(p => {
+            const name = p.name || '';
+            const shelf = p.shelf || '';
+            return shelf ? `<span class="product-shelf">${name} (${shelf})</span>` : name;
+          }).join(', ');
+          productsHtml = `<strong>${productItems}</strong>`;
+        }
+        
+        return `<div class="detection-item">
+          <span class="det-id">#${d.track_id}</span>
+          <span class="gender-badge ${d.gender==='Nam'?'gender-male':'gender-female'}">${d.gender}</span>
+          <span class="age-badge">${d.age_group}</span>
+          <div class="det-products">
+            🎁 Gợi ý: ${productsHtml}
+            <span class="promotion-text">🏷️ ${d.promotion || ''}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      if (result.detections.length > 30) {
+        list.innerHTML += `<div style="text-align:center;color:var(--muted);font-size:13px;padding:12px">
+          ... và ${result.detections.length - 30} kết quả khác trong Dashboard</div>`;
+      }
+    }
+
+    document.getElementById('result-card').classList.add('show');
+  } catch(e) {
+    console.error('Load result error:', e);
+    document.getElementById('result-card').innerHTML = `
+      <div class="error-state">
+        <div class="icon">⚠️</div>
+        <p>Không thể tải kết quả. <a href="/dashboard" style="color:var(--accent2)">Xem Dashboard</a></p>
+      </div>`;
+    document.getElementById('result-card').classList.add('show');
+  }
+}
+
+initVideoStream();
+pollingInterval = setInterval(checkStatus, pollDelay);
+checkStatus();
+</script>
+</body>
+</html>

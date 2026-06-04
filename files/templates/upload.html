@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Video – Smart Retail AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #070b14;
+  --surf:   #0f1422;
+  --card:   #141928;
+  --border: #1e2640;
+  --accent: #5b52f5;
+  --accent2:#7c75ff;
+  --teal:   #00cfa8;
+  --amber:  #f0a020;
+  --coral:  #f06060;
+  --green:  #3db870;
+  --text:   #dde2f0;
+  --muted:  #6a7294;
+  --font:   'Space Grotesk', system-ui, sans-serif;
+  --mono:   'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(91,82,245,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,82,245,.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;
+    background:rgba(7,11,20,.85);border-bottom:1px solid var(--border);
+    position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;
+           display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px;
+             font-size:14px;font-weight:500;transition:.15s}
+.nav-links a:hover,.nav-links a.active{background:rgba(91,82,245,.15);color:var(--accent2)}
+
+/* ── LAYOUT ── */
+.container{max-width:860px;margin:0 auto;padding:56px 40px;position:relative;z-index:1}
+
+/* ── PAGE HEADER ── */
+.page-header{text-align:center;margin-bottom:40px}
+.page-header h1{font-size:36px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.page-header p{color:var(--muted);font-size:15px}
+
+/* ── UPLOAD CARD ── */
+.upload-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px}
+
+.upload-area{
+  border:2px dashed var(--border);border-radius:16px;padding:56px 24px;
+  cursor:pointer;transition:all .2s;text-align:center;
+  background:rgba(91,82,245,.02);
+}
+.upload-area:hover{border-color:var(--accent2);background:rgba(91,82,245,.06)}
+.upload-area.drag-over{border-color:var(--teal);background:rgba(0,207,168,.05)}
+.upload-icon{font-size:56px;margin-bottom:16px}
+.upload-hint{font-size:16px;font-weight:600;margin-bottom:6px}
+.upload-sub{font-size:13px;color:var(--muted)}
+
+.format-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.fmt{background:var(--surf);border:1px solid var(--border);border-radius:8px;
+     padding:5px 12px;font-size:12px;font-family:var(--mono);color:var(--teal)}
+
+/* ── FILE SELECTED ── */
+.file-selected{
+  display:none;margin-top:20px;background:var(--surf);
+  border:1px solid var(--border);border-radius:14px;padding:18px 20px;
+}
+.file-selected.show{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.file-info-left{display:flex;align-items:center;gap:12px}
+.file-icon-box{width:44px;height:44px;background:rgba(91,82,245,.15);border-radius:10px;
+               display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.file-name{font-size:14px;font-weight:600;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{font-size:12px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.file-actions{display:flex;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;
+     cursor:pointer;border:none;display:inline-flex;align-items:center;gap:7px;
+     text-decoration:none;transition:.2s;font-family:var(--font)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 20px rgba(91,82,245,.3)}
+.btn-primary:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-lg{padding:14px 32px;font-size:15px;border-radius:12px;margin-top:24px;width:100%;justify-content:center}
+
+/* ── UPLOAD PROGRESS ── */
+.upload-progress{display:none;margin-top:20px}
+.upload-progress.show{display:block}
+.progress-bar{background:var(--surf);border-radius:8px;height:8px;overflow:hidden;margin:12px 0 6px}
+.progress-fill{background:linear-gradient(90deg,var(--accent),var(--teal));width:0%;height:100%;
+               transition:width .3s;border-radius:8px}
+.progress-text{font-size:12px;color:var(--muted);text-align:center}
+
+/* ── GUIDE CARD ── */
+.guide-card{background:var(--card);border:1px solid var(--border);border-radius:20px;
+            padding:32px;margin-top:24px}
+.guide-title{font-size:17px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.guide-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.guide-step{text-align:center;padding:8px 0}
+.guide-step-num{width:38px;height:38px;border-radius:50%;background:var(--accent);
+                display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;
+                margin:0 auto 12px;color:#fff}
+.guide-step-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.guide-step-desc{font-size:12px;color:var(--muted);line-height:1.5}
+code{background:var(--surf);padding:2px 8px;border-radius:5px;font-size:12px;color:var(--teal);font-family:var(--mono)}
+
+@media(max-width:640px){
+  .container{padding:32px 16px}
+  .guide-grid{grid-template-columns:1fr 1fr}
+  .upload-card{padding:24px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🛒</div>
+    Smart Retail AI
+  </div>
+  <div class="nav-links">
+    <a href="/">Trang chủ</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/upload" class="active">Upload Video</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>🎥 Upload video phân tích</h1>
+    <p>AI tự động phát hiện người, phân tích giới tính và nhóm tuổi từ video</p>
+  </div>
+
+  <div class="upload-card">
+    <!-- Drop Zone -->
+    <div class="upload-area" id="upload-area">
+      <div class="upload-icon">📁</div>
+      <div class="upload-hint">Kéo thả video vào đây hoặc click để chọn</div>
+      <div class="upload-sub">Hỗ trợ MP4, AVI, MOV, MKV, WEBM · Tối đa 2GB</div>
+      <div class="format-row">
+        <span class="fmt">.mp4</span><span class="fmt">.avi</span><span class="fmt">.mov</span>
+        <span class="fmt">.mkv</span><span class="fmt">.webm</span>
+      </div>
+      <input type="file" id="file-input" style="display:none" accept="video/*">
+    </div>
+
+    <!-- File Selected Info -->
+    <div class="file-selected" id="file-info">
+      <div class="file-info-left">
+        <div class="file-icon-box">🎬</div>
+        <div>
+          <div class="file-name" id="file-name">–</div>
+          <div class="file-size" id="file-size">–</div>
+        </div>
+      </div>
+      <div class="file-actions">
+        <button class="btn btn-ghost" onclick="clearFile()">✕ Hủy</button>
+      </div>
+    </div>
+
+    <!-- Upload Progress -->
+    <div class="upload-progress" id="upload-progress">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text" id="progress-text">Đang upload...</div>
+    </div>
+
+    <!-- Submit Button -->
+    <button class="btn btn-primary btn-lg" id="upload-btn" onclick="uploadFile()" disabled>
+      📤 Upload &amp; Phân tích AI
+    </button>
+  </div>
+
+  <!-- Guide Card -->
+  <div class="guide-card">
+    <div class="guide-title">🚀 Hướng dẫn sử dụng</div>
+    <div class="guide-grid">
+      <div class="guide-step">
+        <div class="guide-step-num">1</div>
+        <div class="guide-step-title">Cài đặt</div>
+        <div class="guide-step-desc">Chạy <code>setup.bat</code> để cài thư viện cần thiết</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">2</div>
+        <div class="guide-step-title">Khởi động</div>
+        <div class="guide-step-desc">Chạy <code>python app.py</code> để start web server</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">3</div>
+        <div class="guide-step-title">Upload</div>
+        <div class="guide-step-desc">Chọn video và nhấn Upload để AI bắt đầu phân tích</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num">4</div>
+        <div class="guide-step-title">Kết quả</div>
+        <div class="guide-step-desc">Xem thống kê chi tiết tại <strong>/dashboard</strong></div>
+      </div>
+    </div>
+    <div style="background:rgba(91,82,245,.07);border:1px solid rgba(91,82,245,.2);
+                border-radius:12px;padding:14px 18px;margin-top:20px;
+                display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:16px">💡</span>
+      <div style="font-size:13px;line-height:1.65;color:var(--text)">
+        Hệ thống <strong>không cần camera realtime</strong>. AI xử lý hoàn toàn từ file video bạn upload.
+        Kết quả (giới tính, nhóm tuổi, gợi ý sản phẩm) sẽ được lưu vào database và hiển thị trên Dashboard.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedFile = null;
+
+const uploadArea = document.getElementById('upload-area');
+const fileInput  = document.getElementById('file-input');
+const fileInfo   = document.getElementById('file-info');
+const uploadBtn  = document.getElementById('upload-btn');
+
+uploadArea.onclick = () => fileInput.click();
+
+uploadArea.addEventListener('dragover', e => {
+  e.preventDefault(); uploadArea.classList.add('drag-over');
+});
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.classList.remove('drag-over');
+});
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.classList.remove('drag-over');
+  if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files.length > 0) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const allowed = ['mp4','avi','mov','mkv','webm','mpg','mpeg','flv','wmv'];
+  if (!allowed.includes(ext)) {
+    alert('Định dạng không hỗ trợ. Vui lòng chọn: MP4, AVI, MOV, MKV, WEBM');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024 * 1024) {
+    alert('File quá lớn. Tối đa 2GB');
+    return;
+  }
+  selectedFile = file;
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-size').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+  fileInfo.classList.add('show');
+  uploadBtn.disabled = false;
+}
+
+function clearFile() {
+  selectedFile = null;
+  fileInput.value = '';
+  fileInfo.classList.remove('show');
+  uploadBtn.disabled = true;
+  document.getElementById('upload-progress').classList.remove('show');
+}
+
+async function uploadFile() {
+  if (!selectedFile) { alert('Vui lòng chọn video trước'); return; }
+
+  const formData = new FormData();
+  formData.append('video', selectedFile);
+
+  uploadBtn.textContent = '⏳ Đang upload...';
+  uploadBtn.disabled = true;
+
+  const progress = document.getElementById('upload-progress');
+  const fill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  progress.classList.add('show');
+
+  // Fake progress animation
+  let pct = 0;
+  const ticker = setInterval(() => {
+    if (pct < 85) { pct += Math.random() * 8; fill.style.width = pct + '%'; }
+  }, 200);
+
+  try {
+    const response = await fetch('/upload', { method:'POST', body:formData });
+    clearInterval(ticker);
+    fill.style.width = '100%';
+    progressText.textContent = '✅ Upload xong! Đang chuyển trang...';
+
+    if (response.redirected) {
+      window.location.href = response.url;
+    } else if (response.ok) {
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        document.head.innerHTML = doc.head.innerHTML;
+        document.body.innerHTML = doc.body.innerHTML;
+        doc.body.querySelectorAll('script').forEach(s => {
+          const ns = document.createElement('script');
+          if (s.src) ns.src = s.src; else ns.textContent = s.textContent;
+          document.body.appendChild(ns);
+        });
+      } else {
+        const data = await response.json();
+        if (data.redirect) window.location.href = data.redirect;
+        else window.location.href = '/dashboard';
+      }
+    } else {
+      throw new Error(`Server error: ${response.status}`);
+    }
+  } catch(err) {
+    clearInterval(ticker);
+    fill.style.width = '0%';
+    progress.classList.remove('show');
+    uploadBtn.textContent = '📤 Upload & Phân tích AI';
+    uploadBtn.disabled = false;
+    progressText.textContent = '';
+    alert('Lỗi upload: ' + err.message);
+  }
+}
+</script>
+</body>
+</html>

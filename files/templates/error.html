@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lỗi - Smart Retail AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #070b14;
+    color: #dde2f0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .error-container {
+    text-align: center;
+    padding: 40px;
+    max-width: 500px;
+  }
+  .error-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+  }
+  .error-code {
+    font-size: 14px;
+    color: #f06060;
+    background: rgba(240, 96, 96, 0.1);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  p {
+    color: #6a7294;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #5b52f5;
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+  .btn:hover {
+    background: #7c75ff;
+    transform: translateY(-1px);
+  }
+  .details {
+    margin-top: 24px;
+    padding: 16px;
+    background: #0f1422;
+    border-radius: 12px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #f0a020;
+    text-align: left;
+    word-break: break-all;
+  }
+</style>
+</head>
+<body>
+<div class="error-container">
+  <div class="error-icon">⚠️</div>
+  <div class="error-code">LỖI HỆ THỐNG</div>
+  <h1>Có lỗi xảy ra</h1>
+  <p>{{ error_msg if error_msg else "Đã có lỗi trong quá trình xử lý. Vui lòng thử lại sau."}}</p>
+  <a href="/" class="btn">← Về trang chủ</a>
+  {% if details %}
+  <div class="details">
+    <strong>Chi tiết:</strong><br>
+    {{ details }}
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
