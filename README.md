@@ -197,6 +197,6 @@ Camera/Video → YOLOv8 → DeepFace → Tracker → Recommendation → SQLite �
 
 # 10. Thông tin liên hệ
 
-Tác giả: [Họ và tên của bạn]
+Tác giả: [Lê Bá Hoan]
 GitHub: https://github.com/h0an12
 Email: lebahoan1812@gmail.com
